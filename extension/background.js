@@ -451,7 +451,10 @@ async function listModels(p, key) {
   const j = await resp.json();
   const list = Array.isArray(j) ? j : (j.data || j.models || []);
   const ids = list.map((m) => String(m.id || m.name || "").replace(/^models\//, "")).filter(Boolean);
-  return [...new Set(ids)].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  // Hide models that can't do text chat (realtime/voice, speech, image/video generation, embeddings, moderation).
+  const NON_CHAT = /(^|[-_/.:])(live|realtime|tts|transcribe|audio|native-audio|whisper|embed|embedding|embeddings|imagen|image|dall-e|veo|sora|moderation|aqa|rerank)([-_/.:]|$)/i;
+  const chat = ids.filter((id) => !NON_CHAT.test(id));
+  return [...new Set(chat.length ? chat : ids)].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 }
 
 /* ---------- updates (GitHub Releases) ---------- */
