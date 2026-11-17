@@ -4,7 +4,9 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 APP="Aegis"
-BUNDLE_ID="${BUNDLE_ID:-dev.aegis.safari}"
+# Must stay the same across releases: the in-app updater only accepts the same bundle id.
+BUNDLE_ID="${BUNDLE_ID:-dev.aegis.Aegis}"
+EXT_BUNDLE_ID="$BUNDLE_ID.Extension"
 OUT="build"
 
 rm -rf "$OUT"
@@ -24,25 +26,28 @@ cp native/app/Main.html native/app/Script.js native/app/Style.css "$MAIN_DIR/"
 
 PROJ="$(find "$OUT" -maxdepth 2 -name '*.xcodeproj' | head -1)"
 [ -n "$PROJ" ] || { echo "error: no .xcodeproj in $OUT" >&2; find "$OUT" -maxdepth 3 >&2; exit 1; }
-# Newer Xcode converters can give the app a bundle id that differs from the requested one
-# (e.g. dev.aegis.Aegis), which breaks signed builds: the extension id must start with the app id.
+# Xcode versions' converters name the targets' bundle ids differently. Normalise them to
+# app=$BUNDLE_ID and extension=$BUNDLE_ID.Extension (signed builds require that prefix).
 target_id() {
   xcodebuild -project "$PROJ" -target "$1" -showBuildSettings 2>/dev/null \
     | awk -F' = ' '/^ *PRODUCT_BUNDLE_IDENTIFIER = /{print $2; exit}'
 }
-APP_ID="$(target_id "$APP")"
-echo "Bundle ids: app=$APP_ID extension=$(target_id "$APP Extension")"
-if [ -n "$APP_ID" ] && [ "$APP_ID" != "$BUNDLE_ID" ]; then
+replace_id() { # $1 old id, $2 new id; whole-id matches only
+  [ -n "$1" ] && [ "$1" != "$2" ] || return 0
   while IFS= read -r -d '' f; do
-    perl -pi -e "s/\Q$APP_ID\E(?![\w-])/$BUNDLE_ID/g" "$f"
-  done < <(grep -rIl --null -F "$APP_ID" "$PROJ" "$(dirname "$PROJ")/$APP" 2>/dev/null || true)
-  APP_ID="$(target_id "$APP")"
-  echo "Corrected app bundle id: $APP_ID"
-  if [ "$APP_ID" != "$BUNDLE_ID" ]; then
-    echo "error: could not set the app bundle id to $BUNDLE_ID. Matching project lines:" >&2
-    grep -rIn -i "bundle_identifier\|aegis" "$PROJ" | head -20 >&2
-    exit 1
-  fi
+    perl -pi -e "s/(?<![\w.-])\Q$1\E(?![\w.-])/$2/g" "$f"
+  done < <(grep -rIl --null -F "$1" "$PROJ" "$(dirname "$PROJ")/$APP" "$(dirname "$PROJ")/$APP Extension" 2>/dev/null || true)
+}
+APP_ID="$(target_id "$APP")"; EXT_ID="$(target_id "$APP Extension")"
+echo "Generated bundle ids: app=$APP_ID extension=$EXT_ID"
+replace_id "$EXT_ID" "$EXT_BUNDLE_ID"
+replace_id "$APP_ID" "$BUNDLE_ID"
+APP_ID="$(target_id "$APP")"; EXT_ID="$(target_id "$APP Extension")"
+echo "Using bundle ids: app=$APP_ID extension=$EXT_ID"
+if [ "$APP_ID" != "$BUNDLE_ID" ] || [ "$EXT_ID" != "$EXT_BUNDLE_ID" ]; then
+  echo "error: could not normalise bundle ids. Matching project lines:" >&2
+  grep -rIn -i "bundle_identifier\|aegis" "$PROJ" | head -20 >&2
+  exit 1
 fi
 
 xcodebuild -project "$PROJ" -scheme "$APP" -configuration Release \
