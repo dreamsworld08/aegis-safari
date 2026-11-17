@@ -436,6 +436,9 @@ async function listModels(p, key) {
     resp = await fetch(base + "/v1/models?limit=100", {
       headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" }
     });
+  } else if (/^https:\/\/models\.github\.ai\//.test(base)) {
+    // GitHub Models lists its catalog outside the /inference path.
+    resp = await fetch("https://models.github.ai/catalog/models", { headers: { accept: "application/vnd.github+json", ...(key ? { authorization: "Bearer " + key } : {}) } });
   } else {
     resp = await fetch(base + "/models", { headers: key ? { authorization: "Bearer " + key } : {} });
   }
