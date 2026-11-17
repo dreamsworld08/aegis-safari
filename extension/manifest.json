@@ -6,8 +6,8 @@
   "description": "Bring-your-own-model AI sidebar and browsing agent for Safari. Reads, controls and manages tabs with explicit approval.",
   "icons": { "16": "icons/icon-16.png", "32": "icons/icon-32.png", "48": "icons/icon-48.png", "128": "icons/icon-128.png" },
   "action": { "default_title": "Toggle Aegis sidebar", "default_icon": { "16": "icons/icon-16.png", "32": "icons/icon-32.png" } },
-  "background": { "scripts": ["background.js"], "persistent": false },
-  "options_ui": { "page": "options.html", "open_in_tab": true },
+  "background": { "scripts": ["background.js"] },
+  "options_ui": { "page": "options.html" },
   "permissions": ["tabs", "storage", "activeTab", "scripting", "nativeMessaging"],
   "host_permissions": ["<all_urls>"],
   "content_scripts": [

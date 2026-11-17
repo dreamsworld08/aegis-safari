@@ -22,10 +22,17 @@ cp native/app/Main.html native/app/Script.js native/app/Style.css "$MAIN_DIR/"
 
 # The container app replaces itself when updating, so it runs outside the App Sandbox.
 # The Safari extension itself stays sandboxed.
-python3 - "$OUT" "$BUNDLE_ID" <<'PY'
-import glob, plistlib, re, sys
-out, bid = sys.argv[1], sys.argv[2]
-proj = glob.glob(f"{out}/**/project.pbxproj", recursive=True)[0]
+PBX="$(find "$OUT" -name project.pbxproj -path '*.xcodeproj/*' | head -1)"
+if [ -z "$PBX" ]; then
+  echo "error: generated Xcode project not found. Contents of $OUT:" >&2
+  find "$OUT" -maxdepth 3 >&2
+  exit 1
+fi
+ENTS=()
+while IFS= read -r f; do ENTS+=("$f"); done < <(find "$OUT" -name '*.entitlements' -not -path '*Extension*')
+/usr/bin/python3 - "$PBX" "$BUNDLE_ID" "${ENTS[@]+"${ENTS[@]}"}" <<'PY'
+import plistlib, re, sys
+proj, bid, ents = sys.argv[1], sys.argv[2], sys.argv[3:]
 s = open(proj).read()
 def fix(m):
     b = m.group(0)
@@ -33,9 +40,8 @@ def fix(m):
         b = b.replace("ENABLE_APP_SANDBOX = YES", "ENABLE_APP_SANDBOX = NO")
     return b
 open(proj, "w").write(re.sub(r"buildSettings = \{.*?\n\t\t\t\};", fix, s, flags=re.S))
-for f in glob.glob(f"{out}/**/*.entitlements", recursive=True):
-    if "Extension" in f:
-        continue
+print("Patched:", proj)
+for f in ents:
     with open(f, "rb") as fh:
         d = plistlib.load(fh)
     d["com.apple.security.app-sandbox"] = False
@@ -44,7 +50,7 @@ for f in glob.glob(f"{out}/**/*.entitlements", recursive=True):
     print("App sandbox off:", f)
 PY
 
-PROJ="$(find "$OUT" -maxdepth 2 -name '*.xcodeproj' | head -1)"
+PROJ="$(dirname "$PBX")"
 xcodebuild -project "$PROJ" -scheme "$APP" -configuration Release \
   ARCHS=arm64 ONLY_ACTIVE_ARCH=YES \
   SWIFT_OPTIMIZATION_LEVEL=-O \
