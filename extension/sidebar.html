@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Aegis</title>
+  <link rel="stylesheet" href="sidebar.css">
+</head>
+<body>
+  <header>
+    <strong>Aegis</strong>
+    <select id="model" title="Model"></select>
+    <button id="clear" title="New chat">＋</button>
+    <button id="settings" title="Settings">⚙︎</button>
+    <button id="close" title="Close">✕</button>
+  </header>
+  <main id="log" aria-live="polite">
+    <div class="hint">Ask about this page, your tabs, or tell me what to do.<br>Actions that change anything ask for your approval first.</div>
+  </main>
+  <form id="form">
+    <textarea id="input" rows="2" placeholder="Ask anything…  (⏎ send, ⇧⏎ newline)"></textarea>
+    <button id="send" type="submit">Send</button>
+  </form>
+  <script src="sidebar.js"></script>
+</body>
+</html>

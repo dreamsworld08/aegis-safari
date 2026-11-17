@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Aegis Settings</title>
+  <link rel="stylesheet" href="sidebar.css">
+  <style>
+    body { display: block; max-width: 820px; margin: 0 auto; padding: 24px 16px; height: auto; }
+    section { border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+    h1 { font-size: 20px; } h2 { font-size: 15px; margin-top: 0; }
+    label { display: block; margin: 8px 0 2px; color: var(--muted); }
+    input, select, textarea { width: 100%; font: inherit; color: var(--fg); background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; }
+    table { width: 100%; border-collapse: collapse; } td, th { text-align: left; padding: 6px 4px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    .row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; } .muted { color: var(--muted); }
+    #audit { font: 11px ui-monospace, Menlo, monospace; max-height: 320px; overflow: auto; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>Aegis Settings</h1>
+
+  <section>
+    <h2>Models</h2>
+    <table><thead><tr><th>Name</th><th>Model</th><th>Endpoint</th><th>Key</th><th></th></tr></thead><tbody id="providers"></tbody></table>
+  </section>
+
+  <section>
+    <h2 id="formTitle">Add a model</h2>
+    <label for="preset">Preset</label><select id="preset"></select>
+    <label for="name">Display name</label><input id="name">
+    <label for="kind">API format</label>
+    <select id="kind"><option value="openai">OpenAI-compatible (OpenAI, DeepSeek, Qwen, Gemini, GitHub Models, OpenRouter, Ollama, LM Studio, MLX)</option><option value="anthropic">Anthropic Messages (Claude)</option></select>
+    <label for="baseUrl">Base URL</label><input id="baseUrl" spellcheck="false">
+    <label for="model">Model ID</label><input id="model" spellcheck="false">
+    <label for="key">API key <span class="muted">(stored in the macOS Keychain; leave blank to keep existing / for local models)</span></label>
+    <input id="key" type="password" autocomplete="off">
+    <label><input id="local" type="checkbox" style="width:auto"> Local model (no key required)</label>
+    <div class="row"><button class="primary" id="save">Save model</button><button id="reset">Cancel edit</button><span id="status" class="muted"></span></div>
+  </section>
+
+  <section>
+    <h2>Security policy</h2>
+    <p class="muted">The agent can never read or control pages on these domains (subdomains included). Built-in list: <span id="defaults"></span></p>
+    <label for="blocklist">Extra blocked domains (one per line)</label><textarea id="blocklist" rows="5" spellcheck="false"></textarea>
+    <label for="maxSteps">Max agent steps per request</label><input id="maxSteps" type="number" min="1" max="30">
+    <div class="row"><button class="primary" id="savePolicy">Save policy</button></div>
+  </section>
+
+  <section>
+    <h2>Audit log</h2>
+    <div class="row"><button id="refreshAudit">Refresh</button><button id="clearAudit">Clear</button></div>
+    <div id="audit"></div>
+  </section>
+  <script src="options.js"></script>
+</body>
+</html>
