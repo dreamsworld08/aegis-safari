@@ -40,7 +40,7 @@ codesign -d --entitlements - --xml "$APP_PATH" > "$ENT" 2>/dev/null || true
 if [ ! -s "$ENT" ]; then
   printf '<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0"><dict/></plist>\n' > "$ENT"
 fi
-plutil -replace com.apple.security.app-sandbox -bool NO "$ENT"
+plutil -replace com.apple.security.app-sandbox -bool false "$ENT"
 codesign --force --sign "$IDENTITY" --entitlements "$ENT" --timestamp=none "$APP_PATH"
 echo "App re-signed without sandbox using identity: $IDENTITY"
 
