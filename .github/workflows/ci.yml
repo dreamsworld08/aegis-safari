@@ -16,9 +16,20 @@ jobs:
       - run: node scripts/check.mjs
   build-macos:
     runs-on: macos-15
+    env:
+      HAS_CERT: ${{ secrets.MACOS_CERT_P12_BASE64 != '' }}
     steps:
       - uses: actions/checkout@v4
       - run: ./scripts/build-safari.sh
+      - name: Sign with Apple Development certificate
+        if: env.HAS_CERT == 'true'
+        env:
+          MACOS_CERT_P12_BASE64: ${{ secrets.MACOS_CERT_P12_BASE64 }}
+          MACOS_CERT_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
+        run: ./scripts/sign-ci.sh "$(find build/DerivedData -name Aegis.app -type d | head -1)"
+      - name: Note unsigned build
+        if: env.HAS_CERT != 'true'
+        run: echo "::notice::No signing certificate secret set; release is ad-hoc signed."
       - name: Zip app
         run: |
           APP="$(find build/DerivedData -name Aegis.app -type d | head -1)"

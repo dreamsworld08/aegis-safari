@@ -83,3 +83,15 @@ scripts/     build-safari.sh (converter + arm64 xcodebuild), check.mjs (CI check
 - Cross-origin iframes are not read.
 
 MIT licensed.
+
+## Signed releases with a free Apple ID
+
+Signing with an Apple Development certificate stops Safari from needing **Allow Unsigned Extensions**. A free Apple ID "Personal Team" certificate is enough.
+
+1. Xcode ▸ Settings ▸ Accounts ▸ add your Apple ID ▸ **Manage Certificates** ▸ **+** ▸ **Apple Development**.
+2. Keychain Access ▸ My Certificates ▸ right-click **Apple Development: …** ▸ **Export** ▸ save `cert.p12` with a strong password.
+3. Copy it as base64: `base64 -i cert.p12 | pbcopy`
+4. GitHub repo ▸ Settings ▸ Secrets and variables ▸ Actions ▸ add `MACOS_CERT_P12_BASE64` (paste) and `MACOS_CERT_PASSWORD`.
+5. Delete `cert.p12`. From then on, every release CI publishes is signed with your certificate.
+
+After you install a team-signed build, the in-app updater only accepts updates signed by the same team.

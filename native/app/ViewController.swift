@@ -193,6 +193,10 @@ final class Updater {
             throw UpdateError("Downloaded version \(newVersion) is not newer.")
         }
         try Self.run("/usr/bin/codesign", ["--verify", "--deep", "--strict", newApp.path])
+        // Once installed from a team-signed build, only accept updates signed by the same team.
+        if let mine = Self.teamID(Bundle.main.bundleURL), Self.teamID(newApp) != mine {
+            throw UpdateError("Update is not signed by the same developer (team \(mine)); not installing.")
+        }
 
         do {
             _ = try fm.replaceItemAt(dest, withItemAt: newApp)
@@ -201,6 +205,16 @@ final class Updater {
         }
         _ = try? Self.run("/usr/bin/xattr", ["-dr", "com.apple.quarantine", dest.path])
         return dest
+    }
+
+    /// Team identifier of a signed bundle; nil for ad-hoc or unsigned code.
+    static func teamID(_ url: URL) -> String? {
+        var code: SecStaticCode?
+        guard SecStaticCodeCreateWithPath(url as CFURL, [], &code) == errSecSuccess, let c = code else { return nil }
+        var info: CFDictionary?
+        guard SecCodeCopySigningInformation(c, SecCSFlags(rawValue: kSecCSSigningInformation), &info) == errSecSuccess,
+              let dict = info as? [String: Any] else { return nil }
+        return dict[kSecCodeInfoTeamIdentifier as String] as? String
     }
 
     static func relaunch(_ app: URL) {
