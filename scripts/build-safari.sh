@@ -24,6 +24,27 @@ cp native/app/Main.html native/app/Script.js native/app/Style.css "$MAIN_DIR/"
 
 PROJ="$(find "$OUT" -maxdepth 2 -name '*.xcodeproj' | head -1)"
 [ -n "$PROJ" ] || { echo "error: no .xcodeproj in $OUT" >&2; find "$OUT" -maxdepth 3 >&2; exit 1; }
+# Newer Xcode converters can give the app a bundle id that differs from the requested one
+# (e.g. dev.aegis.Aegis), which breaks signed builds: the extension id must start with the app id.
+target_id() {
+  xcodebuild -project "$PROJ" -target "$1" -showBuildSettings 2>/dev/null \
+    | awk -F' = ' '/^ *PRODUCT_BUNDLE_IDENTIFIER = /{print $2; exit}'
+}
+APP_ID="$(target_id "$APP")"
+echo "Bundle ids: app=$APP_ID extension=$(target_id "$APP Extension")"
+if [ -n "$APP_ID" ] && [ "$APP_ID" != "$BUNDLE_ID" ]; then
+  while IFS= read -r -d '' f; do
+    perl -pi -e "s/\Q$APP_ID\E(?![\w-])/$BUNDLE_ID/g" "$f"
+  done < <(grep -rIl --null -F "$APP_ID" "$PROJ" "$(dirname "$PROJ")/$APP" 2>/dev/null || true)
+  APP_ID="$(target_id "$APP")"
+  echo "Corrected app bundle id: $APP_ID"
+  if [ "$APP_ID" != "$BUNDLE_ID" ]; then
+    echo "error: could not set the app bundle id to $BUNDLE_ID. Matching project lines:" >&2
+    grep -rIn -i "bundle_identifier\|aegis" "$PROJ" | head -20 >&2
+    exit 1
+  fi
+fi
+
 xcodebuild -project "$PROJ" -scheme "$APP" -configuration Release \
   ARCHS=arm64 ONLY_ACTIVE_ARCH=YES \
   SWIFT_OPTIMIZATION_LEVEL=-O \
