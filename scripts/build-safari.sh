@@ -40,7 +40,9 @@ codesign -d --entitlements - --xml "$APP_PATH" > "$ENT" 2>/dev/null || true
 if [ ! -s "$ENT" ]; then
   printf '<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0"><dict/></plist>\n' > "$ENT"
 fi
-plutil -replace com.apple.security.app-sandbox -bool false "$ENT"
+# PlistBuddy, not plutil: plutil treats the dots in the key as a nested path.
+/usr/libexec/PlistBuddy -c "Delete :com.apple.security.app-sandbox" "$ENT" >/dev/null 2>&1 || true
+/usr/libexec/PlistBuddy -c "Add :com.apple.security.app-sandbox bool false" "$ENT"
 codesign --force --sign "$IDENTITY" --entitlements "$ENT" --timestamp=none "$APP_PATH"
 echo "App re-signed without sandbox using identity: $IDENTITY"
 
