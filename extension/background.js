@@ -19,6 +19,7 @@ const PRESETS = [
   { name: "DeepSeek", kind: "openai", baseUrl: "https://api.deepseek.com/v1", model: "deepseek-chat" },
   { name: "Qwen (Alibaba DashScope)", kind: "openai", baseUrl: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1", model: "qwen-plus" },
   { name: "GitHub Models (Copilot account)", kind: "openai", baseUrl: "https://models.github.ai/inference", model: "openai/gpt-4.1" },
+  { name: "xAI Grok", kind: "openai", baseUrl: "https://api.x.ai/v1", model: "grok-4" },
   { name: "Google Gemini", kind: "openai", baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai", model: "gemini-3.1-pro-preview" },
   { name: "OpenRouter (any model)", kind: "openai", baseUrl: "https://openrouter.ai/api/v1", model: "meta-llama/llama-3.3-70b-instruct" },
   { name: "Ollama (local)", kind: "openai", baseUrl: "http://localhost:11434/v1", model: "qwen3:14b", local: true },
