@@ -1,1 +1,8 @@
-/* Styles live in Main.html; kept so the generated project's resource reference stays valid. */
+:root { color-scheme: light dark; }
+body { font: 13px -apple-system, BlinkMacSystemFont, system-ui, sans-serif; text-align: center; padding: 24px; margin: 0; -webkit-user-select: none; cursor: default; }
+h1 { font-size: 20px; margin: 4px 0 2px; }
+.muted { color: GrayText; }
+.card { border: 1px solid rgba(127,127,127,.3); border-radius: 10px; padding: 14px; margin: 16px auto; max-width: 360px; }
+button { font: inherit; padding: 5px 14px; margin: 4px; }
+#err { color: #d33; white-space: pre-wrap; -webkit-user-select: text; }
+[hidden] { display: none !important; }

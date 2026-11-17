@@ -22,7 +22,14 @@ cp native/app/ViewController.swift "$(find "$OUT" -name ViewController.swift -no
 MAIN_HTML="$(find "$OUT" -name Main.html -not -path '*Extension*' | head -1)"
 [ -n "$MAIN_HTML" ] || { echo "error: generated Main.html not found" >&2; exit 1; }
 MAIN_DIR="$(dirname "$MAIN_HTML")"
-cp native/app/Main.html native/app/Script.js native/app/Style.css "$MAIN_DIR/"
+ORIG_JS="$(find "$OUT" -name Script.js -not -path '*Extension*' | head -1)"
+[ -n "$ORIG_JS" ] || { echo "error: generated Script.js not found" >&2; exit 1; }
+ASSET_DIR="$(dirname "$ORIG_JS")"
+# In the built app, Script.js/Style.css sit in Contents/Resources; a localized Main.html
+# (in Base.lproj) must reach them with "../".
+case "$MAIN_DIR" in *.lproj) ASSETS="../" ;; *) ASSETS="" ;; esac
+sed "s#__ASSETS__#$ASSETS#g" native/app/Main.html > "$MAIN_HTML"
+cp native/app/Script.js native/app/Style.css "$ASSET_DIR/"
 
 PROJ="$(find "$OUT" -maxdepth 2 -name '*.xcodeproj' | head -1)"
 [ -n "$PROJ" ] || { echo "error: no .xcodeproj in $OUT" >&2; find "$OUT" -maxdepth 3 >&2; exit 1; }
@@ -71,6 +78,14 @@ fi
 /usr/libexec/PlistBuddy -c "Add :com.apple.security.app-sandbox bool false" "$ENT"
 codesign --force --sign "$IDENTITY" --entitlements "$ENT" --timestamp=none "$APP_PATH"
 echo "App re-signed without sandbox using identity: $IDENTITY"
+
+# The app window must find its script and stylesheet, or it shows a dead page.
+RES="$APP_PATH/Contents/Resources"
+BUILT_MAIN="$(find "$RES" -name Main.html | head -1)"
+for a in Script.js Style.css; do
+  [ -f "$(dirname "$BUILT_MAIN")/$ASSETS$a" ] || { echo "error: app window asset $a missing next to $BUILT_MAIN" >&2; exit 1; }
+done
+grep -q "__ASSETS__" "$BUILT_MAIN" && { echo "error: unreplaced placeholder in Main.html" >&2; exit 1; }
 
 codesign --verify --deep --strict "$APP_PATH"
 echo "Built and signature-verified: $APP_PATH"
