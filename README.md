@@ -26,6 +26,15 @@ A bring-your-own-model AI sidebar and browsing agent for Safari on Apple Silicon
 | Audit log | Every tool call (typed text redacted) is logged locally. You can view and clear it in Settings. |
 | No telemetry | Network traffic goes only to the model endpoint you configure. |
 
+## Install the prebuilt app (no Xcode needed)
+
+1. Download `Aegis-macOS-arm64.zip` from [Releases](https://github.com/dreamsworld08/aegis-safari/releases/latest), unzip, move `Aegis.app` to Applications.
+2. It is ad-hoc signed, so clear the quarantine flag once:
+   ```bash
+   xattr -dr com.apple.quarantine /Applications/Aegis.app
+   ```
+3. Open `Aegis.app` once, then follow steps 2–4 below.
+
 ## Build & install (macOS 14+, Xcode 15+, Apple Silicon)
 
 ```bash

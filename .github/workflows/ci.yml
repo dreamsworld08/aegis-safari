@@ -1,5 +1,11 @@
 name: CI
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+permissions:
+  contents: write
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -13,3 +19,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: ./scripts/build-safari.sh
+      - name: Zip app
+        run: |
+          APP="$(find build/DerivedData -name Aegis.app -type d | head -1)"
+          ditto -c -k --keepParent "$APP" Aegis-macOS-arm64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Aegis-macOS-arm64
+          path: Aegis-macOS-arm64.zip
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" Aegis-macOS-arm64.zip --title "Aegis $GITHUB_REF_NAME" --notes "Apple Silicon build (ad-hoc signed). See README › Install the prebuilt app."
