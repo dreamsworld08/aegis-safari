@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'">
+  <title>Aegis</title>
+  <link rel="stylesheet" href="Style.css">
+  <script src="Script.js" defer></script>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font: 13px -apple-system, system-ui, sans-serif; text-align: center; padding: 24px; margin: 0; }
+    h1 { font-size: 20px; margin: 4px 0 2px; }
+    .muted { color: GrayText; }
+    .card { border: 1px solid rgba(127,127,127,.3); border-radius: 10px; padding: 14px; margin: 16px auto; max-width: 360px; }
+    button { font: inherit; padding: 5px 14px; margin: 4px; }
+    #err { color: #d33; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>Aegis</h1>
+  <div class="muted">Version <span id="version">…</span></div>
+  <p id="state">Checking extension status…</p>
+  <button id="prefs">Open Safari Extensions Settings…</button>
+
+  <div class="card">
+    <strong>Updates</strong>
+    <p id="upd">Checking for updates…</p>
+    <p id="err"></p>
+    <button id="check">Check for updates</button>
+    <button id="install" hidden>Install update</button>
+  </div>
+</body>
+</html>

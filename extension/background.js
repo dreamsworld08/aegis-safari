@@ -421,6 +421,10 @@ api.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         return { models: await listModels(msg.provider, key) };
       }
       case "checkUpdate": return checkUpdate(!!msg.force);
+      case "installUpdate": {
+        try { const r = await api.runtime.sendNativeMessage(NATIVE_ID, { action: "launchUpdater" }); return { ok: !!(r && r.ok) }; }
+        catch (_) { return { ok: false }; }
+      }
       default: return undefined;
     }
   })().then(sendResponse, (e) => sendResponse({ error: String(e && e.message || e) }));

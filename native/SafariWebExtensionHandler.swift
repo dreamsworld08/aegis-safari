@@ -1,3 +1,4 @@
+import AppKit
 import SafariServices
 import Security
 import os.log
@@ -15,7 +16,9 @@ final class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         let key = message["key"] as? String ?? ""
 
         var reply: [String: Any] = ["ok": false]
-        if !key.isEmpty, key.count <= 128 {
+        if action == "launchUpdater" {
+            reply = ["ok": launchContainingAppForUpdate()]
+        } else if !key.isEmpty, key.count <= 128 {
             switch action {
             case "get":
                 reply = ["ok": true, "value": read(key) ?? ""]
@@ -33,6 +36,22 @@ final class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         let response = NSExtensionItem()
         response.userInfo = [SFExtensionMessageKey: reply]
         context.completeRequest(returningItems: [response], completionHandler: nil)
+    }
+
+    /// Opens Aegis.app (which contains this extension) and asks it to install the latest update.
+    private func launchContainingAppForUpdate() -> Bool {
+        // .../Aegis.app/Contents/PlugIns/Aegis Extension.appex -> .../Aegis.app
+        let appURL = Bundle.main.bundleURL
+            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        guard appURL.pathExtension == "app" else { return false }
+        if #available(macOS 10.15, *) {
+            let config = NSWorkspace.OpenConfiguration()
+            config.arguments = ["--install-update"]
+            config.activates = true
+            NSWorkspace.shared.openApplication(at: appURL, configuration: config, completionHandler: nil)
+            return true
+        }
+        return NSWorkspace.shared.open(appURL)
     }
 
     private func baseQuery(_ key: String) -> [String: Any] {

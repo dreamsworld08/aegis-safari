@@ -79,6 +79,12 @@ async function checkUpdate(force) {
   }
 }
 $("checkUpdate").onclick = () => checkUpdate(true);
+$("installUpdate").onclick = async () => {
+  $("installUpdate").disabled = true;
+  const r = await send({ type: "installUpdate" });
+  if (r && r.ok) $("installNote").textContent = "Updater started in the Aegis app — follow its window. Safari reloads Aegis when it finishes.";
+  else { $("manual").hidden = false; $("installUpdate").disabled = false; }
+};
 checkUpdate(false);
 
 $("refreshAudit").onclick = loadAudit;

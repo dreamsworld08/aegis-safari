@@ -35,6 +35,10 @@ A bring-your-own-model AI sidebar and browsing agent for Safari on Apple Silicon
    ```
 3. Open `Aegis.app` once, then follow steps 2–4 below.
 
+### Updates
+
+From v0.3.0, updates install from inside the app. Click **Install update** in Aegis Settings, the sidebar's **Update** button, or the Aegis app window. The app downloads the release from this repo and checks its SHA-256 checksum, bundle ID, version and code signature. Then it replaces itself and relaunches. Aegis must be in `/Applications`, and you must be an admin user.
+
 ## Build & install (macOS 14+, Xcode 15+, Apple Silicon)
 
 ```bash

@@ -24,8 +24,9 @@
     <div class="row" style="margin-top:0;align-items:center"><span>Installed: <strong id="ver"></strong></span><button id="checkUpdate">Check for updates</button><span id="updStatus" class="muted"></span></div>
     <div id="updBox" hidden>
       <p><strong id="updTitle"></strong></p>
-      <div class="row"><a id="updDownload" target="_blank" rel="noopener"><button class="primary">Download update</button></a><a id="updPage" target="_blank" rel="noopener"><button>Release notes</button></a></div>
-      <p class="muted">To install: unzip, replace /Applications/Aegis.app, run <code>xattr -dr com.apple.quarantine /Applications/Aegis.app</code>, open it once, then restart Safari. Your settings and keys are kept.</p>
+      <div class="row"><button class="primary" id="installUpdate">Install update</button><a id="updPage" target="_blank" rel="noopener"><button>Release notes</button></a></div>
+      <p class="muted" id="installNote">Aegis downloads the update, verifies its checksum and signature, replaces itself and relaunches. Your settings and keys are kept. If Safari still shows the old version afterwards, restart Safari.</p>
+      <p class="muted" id="manual" hidden>Couldn't start the updater. Open the Aegis app and click <strong>Install update</strong>, or <a id="updDownload" target="_blank" rel="noopener">download it manually</a>.</p>
     </div>
   </section>
 
