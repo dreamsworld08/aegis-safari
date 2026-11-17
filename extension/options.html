@@ -20,6 +20,16 @@
   <h1>Aegis Settings</h1>
 
   <section>
+    <h2>Version</h2>
+    <div class="row" style="margin-top:0;align-items:center"><span>Installed: <strong id="ver"></strong></span><button id="checkUpdate">Check for updates</button><span id="updStatus" class="muted"></span></div>
+    <div id="updBox" hidden>
+      <p><strong id="updTitle"></strong></p>
+      <div class="row"><a id="updDownload" target="_blank" rel="noopener"><button class="primary">Download update</button></a><a id="updPage" target="_blank" rel="noopener"><button>Release notes</button></a></div>
+      <p class="muted">To install: unzip, replace /Applications/Aegis.app, run <code>xattr -dr com.apple.quarantine /Applications/Aegis.app</code>, open it once, then restart Safari. Your settings and keys are kept.</p>
+    </div>
+  </section>
+
+  <section>
     <h2>Models</h2>
     <table><thead><tr><th>Name</th><th>Model</th><th>Endpoint</th><th>Key</th><th></th></tr></thead><tbody id="providers"></tbody></table>
   </section>
@@ -31,9 +41,11 @@
     <label for="kind">API format</label>
     <select id="kind"><option value="openai">OpenAI-compatible (OpenAI, DeepSeek, Qwen, Gemini, GitHub Models, OpenRouter, Ollama, LM Studio, MLX)</option><option value="anthropic">Anthropic Messages (Claude)</option></select>
     <label for="baseUrl">Base URL</label><input id="baseUrl" spellcheck="false">
-    <label for="model">Model ID</label><input id="model" spellcheck="false">
     <label for="key">API key <span class="muted">(stored in the macOS Keychain; leave blank to keep existing / for local models)</span></label>
     <input id="key" type="password" autocomplete="off">
+    <label for="modelList">Model</label>
+    <div class="row" style="margin-top:0"><select id="modelList" style="flex:1"><option value="">— enter key, then Load models —</option></select><button id="loadModels">Load models</button></div>
+    <label for="model">Model ID <span class="muted">(filled from the list, or type one)</span></label><input id="model" spellcheck="false">
     <label><input id="local" type="checkbox" style="width:auto"> Local model (no key required)</label>
     <div class="row"><button class="primary" id="save">Save model</button><button id="reset">Cancel edit</button><span id="status" class="muted"></span></div>
   </section>

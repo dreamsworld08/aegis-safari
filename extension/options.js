@@ -52,6 +52,35 @@ async function loadAudit() {
   const log = await send({ type: "getAudit" });
   $("audit").textContent = log.slice().reverse().map((e) => `${new Date(e.t).toLocaleString()}  ${e.model}  ${e.tool} ${JSON.stringify(e.args)}\n    → ${e.result}`).join("\n") || "Empty.";
 }
+$("loadModels").onclick = async () => {
+  const provider = { id: editingId, kind: $("kind").value, baseUrl: $("baseUrl").value.trim() };
+  $("status").textContent = "Loading models…";
+  const r = await send({ type: "listModels", provider, apiKey: $("key").value.trim() });
+  if (r.error) { $("status").textContent = r.error.slice(0, 200); return; }
+  const sel = $("modelList"); sel.textContent = "";
+  for (const id of r.models) { const o = document.createElement("option"); o.value = o.textContent = id; sel.append(o); }
+  if (!r.models.length) sel.innerHTML = "<option value=''>No models returned</option>";
+  if (r.models.includes($("model").value)) sel.value = $("model").value;
+  else if (r.models.length) $("model").value = sel.value;
+  $("status").textContent = r.models.length + " models available.";
+};
+$("modelList").onchange = () => { if ($("modelList").value) $("model").value = $("modelList").value; };
+
+$("ver").textContent = api.runtime.getManifest().version;
+async function checkUpdate(force) {
+  $("updStatus").textContent = "Checking…";
+  const r = await send({ type: "checkUpdate", force });
+  if (r.error) { $("updStatus").textContent = r.error; return; }
+  $("updStatus").textContent = r.available ? "" : r.latest ? "You're up to date (" + r.latest + ")." : "No releases published yet.";
+  $("updBox").hidden = !r.available;
+  if (r.available) {
+    $("updTitle").textContent = `Version ${r.latest} is available`;
+    $("updDownload").href = r.download; $("updPage").href = r.page;
+  }
+}
+$("checkUpdate").onclick = () => checkUpdate(true);
+checkUpdate(false);
+
 $("refreshAudit").onclick = loadAudit;
 $("clearAudit").onclick = () => send({ type: "clearAudit" }).then(loadAudit);
 load(); loadAudit();

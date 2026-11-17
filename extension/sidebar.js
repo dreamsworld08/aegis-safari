@@ -111,5 +111,13 @@ $("model").addEventListener("change", (e) => api.runtime.sendMessage({ type: "se
     sel.append(o);
   }
   loadHistory(); renderHistory();
+  api.runtime.sendMessage({ type: "checkUpdate" }).then((u) => {
+    if (u && u.available) {
+      const b = document.createElement("button");
+      b.textContent = "Update " + u.latest; b.className = "primary"; b.title = "A new version is available";
+      b.onclick = () => api.runtime.openOptionsPage();
+      $("model").before(b);
+    }
+  }).catch(() => {});
   $("input").focus();
 })();

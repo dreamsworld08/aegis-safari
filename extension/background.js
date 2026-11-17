@@ -416,11 +416,61 @@ api.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       }
       case "getAudit": { const { auditLog = [] } = await api.storage.local.get("auditLog"); return auditLog; }
       case "clearAudit": await api.storage.local.set({ auditLog: [] }); return { ok: true };
+      case "listModels": {
+        const key = msg.apiKey || (msg.provider.id ? await getSecret(msg.provider.id) : "");
+        return { models: await listModels(msg.provider, key) };
+      }
+      case "checkUpdate": return checkUpdate(!!msg.force);
       default: return undefined;
     }
   })().then(sendResponse, (e) => sendResponse({ error: String(e && e.message || e) }));
   return true;
 });
+
+/* ---------- model discovery ---------- */
+
+async function listModels(p, key) {
+  const base = String(p.baseUrl || "").replace(/\/$/, "");
+  let resp;
+  if (p.kind === "anthropic") {
+    resp = await fetch(base + "/v1/models?limit=100", {
+      headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" }
+    });
+  } else {
+    resp = await fetch(base + "/models", { headers: key ? { authorization: "Bearer " + key } : {} });
+  }
+  if (!resp.ok) throw await httpError(resp);
+  const j = await resp.json();
+  const list = Array.isArray(j) ? j : (j.data || j.models || []);
+  const ids = list.map((m) => String(m.id || m.name || "").replace(/^models\//, "")).filter(Boolean);
+  return [...new Set(ids)].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+}
+
+/* ---------- updates (GitHub Releases) ---------- */
+
+const REPO = "dreamsworld08/aegis-safari";
+function newer(a, b) { // true if version a > b
+  const pa = String(a).replace(/^v/, "").split(".").map(Number), pb = String(b).split(".").map(Number);
+  for (let i = 0; i < 3; i++) { if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) > (pb[i] || 0); }
+  return false;
+}
+async function checkUpdate(force) {
+  const current = api.runtime.getManifest().version;
+  const { updateCache } = await api.storage.local.get("updateCache");
+  let rel = updateCache && Date.now() - updateCache.t < 6 * 3600e3 && !force ? updateCache.rel : null;
+  if (!rel) {
+    const resp = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, { headers: { accept: "application/vnd.github+json" } });
+    if (resp.status === 404) rel = { tag: null };
+    else if (!resp.ok) throw new Error("Update check failed: HTTP " + resp.status);
+    else {
+      const j = await resp.json();
+      const asset = (j.assets || []).find((a) => /\.zip$/.test(a.name));
+      rel = { tag: j.tag_name, page: j.html_url, download: asset ? asset.browser_download_url : j.html_url, notes: (j.body || "").slice(0, 500) };
+    }
+    await api.storage.local.set({ updateCache: { t: Date.now(), rel } });
+  }
+  return { current, latest: rel.tag, available: !!rel.tag && newer(rel.tag, current), page: rel.page, download: rel.download, notes: rel.notes };
+}
 
 /* ---------- toolbar + shortcut ---------- */
 
