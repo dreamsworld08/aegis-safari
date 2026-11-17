@@ -31,4 +31,6 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" Aegis-macOS-arm64.zip --title "Aegis $GITHUB_REF_NAME" --notes "Apple Silicon build (ad-hoc signed). See README › Install the prebuilt app."
+        run: |
+          gh release upload "$GITHUB_REF_NAME" Aegis-macOS-arm64.zip --clobber \
+            || gh release create "$GITHUB_REF_NAME" Aegis-macOS-arm64.zip --title "Aegis $GITHUB_REF_NAME" --notes "Apple Silicon build (ad-hoc signed). See README › Install the prebuilt app."
